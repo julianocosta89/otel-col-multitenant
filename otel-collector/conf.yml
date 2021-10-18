@@ -1,0 +1,30 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  routing:
+    from_attribute: "X-Tenant"
+    default_exporters: [jaeger]
+    table:
+      - value: acme
+        exporters: [jaeger]
+      - value: ecorp
+        exporters: [logging]
+
+exporters:
+  jaeger:
+    endpoint: "jaeger:14250"
+    tls:
+      insecure: true
+  logging:
+    loglevel: debug
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [routing]
+      exporters: [logging,jaeger]

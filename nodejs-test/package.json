@@ -1,0 +1,17 @@
+{
+  "name": "nodejs_app",
+  "version": "1.0.0",
+  "description": "Node.js app with OpenTelemetry",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.0.3",
+    "@opentelemetry/auto-instrumentations-node": "^0.25.0",
+    "@opentelemetry/exporter-collector-proto": "^0.25.0",
+    "@opentelemetry/sdk-node": "^0.25.0",
+    "axios": "^0.21.4",
+    "express": "^4.17.1"
+  }
+}
