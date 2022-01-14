@@ -6,8 +6,9 @@ receivers:
 
 processors:
   routing:
-    from_attribute: "X-Tenant"
     default_exporters: [jaeger]
+    attribute_source: resource
+    from_attribute: tenant
     table:
       - value: acme
         exporters: [jaeger]

@@ -1,23 +1,43 @@
 "use strict";
 
-const opentelemetry = require("@opentelemetry/sdk-node");
-const { getNodeAutoInstrumentations } = require("@opentelemetry/auto-instrumentations-node");
-const { CollectorTraceExporter } = require("@opentelemetry/exporter-collector-proto");
+const opentelemetry = require('@opentelemetry/api');
+const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node');
+const { SimpleSpanProcessor } = require('@opentelemetry/sdk-trace-base');
+const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
+const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
+const { OTLPTraceExporter  } = require("@opentelemetry/exporter-trace-otlp-grpc");
+const { Resource } = require('@opentelemetry/resources');
+const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
 
-const x_tenant = process.env.X_TENANT;
+const tenant = process.env.TENANT;
 
-const OTLPoptions = {
-    url: "http://otel-collector:4318/v1/trace",
-    headers: {
-        "X-Tenant": x_tenant
-    },
+module.exports = (serviceName) => {
+    let provider =  new NodeTracerProvider({
+        resource: new Resource({
+            [SemanticResourceAttributes.SERVICE_NAME]: "nodejs_multitenant",
+            [SemanticResourceAttributes.SERVICE_VERSION]: "1.0.0",
+            "tenant": tenant
+        }),
+    });
+
+    registerInstrumentations({
+        tracerProvider: provider,
+        instrumentations: [
+            HttpInstrumentation,
+            ExpressInstrumentation,
+        ],
+    });
+
+    const OTLPoptions = {
+        url: "http://otel-collector:4317",
+    };
+
+    let traceExporter = new OTLPTraceExporter(OTLPoptions);
+
+    provider.addSpanProcessor(new SimpleSpanProcessor(traceExporter));
+
+    provider.register();
+
+    return opentelemetry.trace.getTracer('multitenant-example');
 };
-
-const collectorExporter = new CollectorTraceExporter(OTLPoptions);
-
-const sdk = new opentelemetry.NodeSDK({
-    traceExporter: collectorExporter,
-    instrumentations: [getNodeAutoInstrumentations()]
-});
-
-sdk.start()

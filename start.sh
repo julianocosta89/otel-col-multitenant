@@ -21,8 +21,9 @@ build_docker_images() {
 
 run_containers() {
     echo "Running containers Jaeger, nodetest and otel-collector"
-    docker run -d --rm --name jaeger --network multitenant -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 14250:14250 -p 9411:9411 jaegertracing/all-in-one:1.27
-    docker run -d --rm -p 8080:8080 --network multitenant -e X_TENANT=ecorp --name nodetest nodetest
+    docker run -d --rm --name jaeger --network multitenant -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 14250:14250 -p 9411:9411 jaegertracing/all-in-one:1.29
+    docker run -d --rm -p 8080:8080 --network multitenant -e TENANT=ecorp --name node-ecorp nodetest
+    docker run -d --rm -p 8081:8080 --network multitenant -e TENANT=acme --name node-acme nodetest
     docker run -d --rm --network multitenant --name otel-collector otel-collector
 }
 
